@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nirvana Virtual Assistant</title>
+  <link rel="shortcut icon" href="ai.gif" type="image/x-icon">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Protest+Guerrilla&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap:30px;
+    flex-direction: column;
+}
+@keyframes gradient-border {
+    0% {
+        border-image-source: linear-gradient(45deg, rgb(21, 145, 207), rgb(201, 41, 116));
+    }
+    25% {
+        border-image-source: linear-gradient(45deg, rgb(43, 206, 212), rgb(212, 43, 122));
+    }
+    50% {
+        border-image-source: linear-gradient(45deg, rgb(255, 85, 85), rgb(255, 215, 0));
+    }
+    75% {
+        border-image-source: linear-gradient(45deg, rgb(0, 128, 0), rgb(0, 255, 255));
+    }
+    100% {
+        border-image-source: linear-gradient(45deg, rgb(21, 145, 207), rgb(201, 41, 116));
+    }
+}
+
+#password-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center; /* Center text */
+    margin-top: 230px; /* Center the container */
+    padding: 20px; /* Add some padding if needed */
+    border-width: 5px; /* Set the border width */
+    border-style: solid; /* Set the border style */
+    border-image-slice: 1; /* Allow border image to cover the entire border */
+    animation: gradient-border 1s linear infinite; /* Apply the animation */
+    border-radius: 10px; /* Optional: rounded corners */
+    background-color: rgba(255, 255, 255, 0.1); /* Optional: background with transparency */
+    transition: all 1s;
+}
+#password-container:hover{
+    letter-spacing: 5px;
+}
+#logo {
+    padding-top: 50px; /* Adjust as needed */
+    width: 250px;
+    display: block; /* Ensures it's a block element */
+    margin: 0 auto; /* Centers the logo horizontally */
+}
+h1{
+    color: aliceblue;
+    font-family: "Protest Guerrilla", sans-serif;
+}
+#name{
+    color:rgb(212, 43, 122);
+    font-size: 45px;
+}
+#va{
+    color:rgb(43, 206, 212);
+    font-size: 45px; 
+}
+#voice {
+    width: 100px;
+    display: block; /* Ensure it’s treated as a block element */
+    margin: 20px auto; /* Center with margin */
+}
+#btn{
+width: 30%;
+background: linear-gradient(to right,rgb(21, 145, 207),rgb(201, 41, 116));
+padding: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+font-size: 20px;
+border-radius: 20px;
+color: white;
+box-shadow: 2px 2px 10px rgb(21, 145, 207),2px 2px 10px rgb(201, 41, 116);
+border: none;
+transition: all 0.5s;
+cursor: pointer;
+margin: 0 auto;
+}
+#btn:hover{
+    box-shadow: 2px 2px 20px rgb(4, 22, 100),2px 2px 20px rgb(201, 41, 116);
+    letter-spacing: 2px;
+}
+  </style>
+</head>
+<body>
+    <div id="password-container" style="display: flex; flex-direction: column; align-items: center;">
+        <h1>Enter Password</h1>
+        <input type="password" id="password" placeholder="Password" style="padding: 10px; border-radius: 5px; border: 2px solid rgb(21, 145, 207);">
+        <button id="submit-password" style="margin-top: 10px; padding: 10px; border-radius: 5px; border: none; background-color: rgb(21, 145, 207); color: white; cursor: pointer;">Submit</button>
+        <div class="error" id="error-message" style="display: none; color: red;"></div>
+    </div>
+    <div id="main-content" style="display: none;">
+    <img src="ai.gif" alt="logo" id="logo">
+    <h1>I'm <span id="name">Nirvana </span> , Your <span id="va">Virtual Assistant</span></h1>
+    <img src="voice.gif" alt="voice" id="voice" style="display: none;">
+    <button id="btn"><img src="mic.svg" alt="mic"><span id="content"> Click here for talk to me</span> </button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <script>
+        let btn=document.querySelector("#btn")
+    let content=document.querySelector("#content")
+    let voice=document.querySelector("#voice")
+    let videoElement; // To hold the video element
+    let stream; // To hold the media stream
+    let canvas = document.getElementById('canvas');
+    let context = canvas.getContext('2d'); // Get canvas context for drawing
+
+        const correctPassword = "1202";
+        const submitButton = document.getElementById('submit-password');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+
+        const checkPassword = () => {
+            const password = passwordInput.value;
+            if (password === correctPassword) {
+                document.getElementById('password-container').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                errorMessage.style.display = 'none';
+            } else {
+                errorMessage.textContent = "Wrong password! Please try again.";
+                errorMessage.style.display = 'block';
+            }
+        };
+
+        submitButton.addEventListener('click', checkPassword);
+        passwordInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+function speak(text){
+    let text_speak=new SpeechSynthesisUtterance(text)
+    text_speak.rate=1
+    text_speak.pitch=1
+    text_speak.volume=1
+    text_speak.lang="hi-GB"
+    window.speechSynthesis.speak(text_speak);
+}
+let speechRecognition= window.SpeechRecognition || window.webkitSpeechRecognition 
+let recognition =new speechRecognition()
+recognition.onresult=(event)=>{
+    let currentIndex=event.resultIndex
+    let transcript=event.results[currentIndex][0].transcript
+    content.innerText=transcript
+   takeCommand(transcript.toLowerCase())
+}
+
+btn.addEventListener("click", () => {
+    voice.style.display = "block"; // Show the voice GIF
+    recognition.start();
+    btn.style.display = "none"; // Hide the button
+});
+function openWebcam() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((mediaStream) => {
+                    stream = mediaStream;
+                    videoElement = document.createElement('video');
+                    videoElement.srcObject = stream;
+                    videoElement.autoplay = true;
+                    videoElement.style.width = '500';
+                    videoElement.style.padding = '30px';
+                    videoElement.style.height = 'auto';
+                    document.body.appendChild(videoElement); // Append video element to body
+                })
+                .catch((error) => {
+                    console.error("Error accessing webcam: ", error);
+                    speak("Sorry, I couldn't access the webcam.");
+                });
+        }
+
+        function stopWebcam() {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop()); // Stop each track
+            }
+            if (videoElement) {
+                videoElement.remove(); // Remove video element from body
+                videoElement = null; // Reset the video element variable
+            }
+        }
+        function clickPicture() {
+        canvas.width = videoElement.videoWidth; // Set canvas width to video width
+        canvas.height = videoElement.videoHeight; // Set canvas height to video height
+        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height); // Draw video frame to canvas
+        canvas.toBlob((blob) => {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'captured-image.png'; // Set download filename
+            link.click(); // Trigger download
+        });
+        speak("Picture taken! Downloading...");
+    }
+
+function takeCommand(message){
+   voice.style.display="none"
+    btn.style.display="flex"
+    if(message.includes("hello nirvana")||message.includes("hello")||message.includes("hey nirvana")||message.includes("hay nirvana")||message.includes("hai nirvana")){
+        speak("hello sir I am Nirvana ,what can i help you?")
+    }
+    else if(message.includes("hu r u")||message.includes("who are you")){
+        speak("i am Nirvana virtual assistant ,created by Rohit Sir")
+    }
+    else if(message.includes("open youtube")){
+        speak("opening youtube...")
+        window.open("https://youtube.com/","_blank")
+    }
+    else if(message.includes("open google")){
+        speak("opening google...")
+        window.open("https://www.google.co.in/","_blank")
+    }
+    else if(message.includes("open facebook")){
+        speak("opening facebook...")
+        window.open("https://facebook.com/","_blank")
+    }
+    else if(message.includes("open instagram")){
+        speak("opening instagram...")
+        window.open("https://instagram.com/","_blank")
+    }
+    else if(message.includes("open calculator")){
+        speak("opening calculator..")
+        window.open("calculator://")
+    }
+    else if(message.includes("who is created")){
+        speak("I was created by Rohit Sir. in 21st september 2024.")
+    }
+    else if(message.includes("open rohit calculator")){
+        speak("opening Rohit sir calculator..")
+        window.open("https://rohit079777.github.io/Calculator/")
+    }
+    else if(message.includes("open tours and travel")||message.includes("open tours ")||message.includes("open travels")){
+        speak("opening Rohit sir project.. tours and travel")
+        window.open("https://rohit079777.github.io/rohit_travels/")
+    }
+    else if(message.includes("open calender")||message.includes("open calendar")){
+        speak("opening calender..")
+        window.open("https://calendar.google.com/calendar/u/0/r?pli=1")
+    }
+    else if(message.includes("open whatsapp")){
+        speak("opening whatsapp..")
+        window.open("whatsapp://")
+    }
+    else if (message.includes("open webcam")||message.includes("open camera")) {
+                speak("Opening webcam...");
+                openWebcam(); // Call the webcam function
+            } else if (message.includes("stop webcam")||message.includes("close webcam")||message.includes("close camera")||message.includes("stop camera")) {
+                speak("Stopping webcam...");
+                stopWebcam(); // Call the stop webcam function
+            }
+            else if (message.includes("click the picture")) {
+        speak("Taking a picture...");
+        clickPicture(); // Call the click picture function
+    }
+    else if(message.includes("time")||message.includes("samay")){
+      let time=new Date().toLocaleString(undefined,{hour:"numeric",minute:"numeric"})
+      speak(time)
+    }
+    else if(message.includes("date")||message.includes("din")||message.includes("tarikh")){
+        let date=new Date().toLocaleString(undefined,{day:"numeric",month:"short"})
+        speak(date)
+      }
+      else if(message.includes("thank you")||message.includes("thank u")||message.includes("thank")||message.includes("ok thanks")){
+        speak("most welcome sir. next time please come to nirvana Virtual assistant")
+      }
+    else{
+        let finalText="this is what i found on internet regarding" + message.replace("Nirvana","") || message.replace("Nirvana","")
+        speak(finalText)
+        window.open(`https://www.google.com/search?q=${message.replace("Niravana","")}`,"_blank")
+    }
+}
+    </script>
+</body>
+</html>
